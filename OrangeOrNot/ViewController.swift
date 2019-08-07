@@ -11,10 +11,6 @@ import CoreML
 import Vision
 
 class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-    
-    // MARK: Properties
-    private var result = ""
-    private var image: UIImage?
 
     // MARK: IBActions
     @IBAction private func uploadAnImage(_ sender: Any) {
@@ -39,20 +35,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         alertController.addAction(cancelAction)
         present(alertController, animated: true)
     }
-    
-    // MARK: Segue Preparation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "ShowDetailViewController" {
-            guard let destinationVC = segue.destination as? DetailViewController else {
-                presentAlertController()
-                return
-            }
-            destinationVC.loadView()
-            destinationVC.orangeOrNotLabel.text = result
-            destinationVC.orangeOrNotView.backgroundColor = result == "Orange" ? #colorLiteral(red: 0.9997988343, green: 0.6145423055, blue: 0, alpha: 1):#colorLiteral(red: 1, green: 0.3412684798, blue: 0.3385329545, alpha: 1)
-            destinationVC.imageView.image = image
-        }
-    }
 }
 
 // MARK: - Image Picker Controller Delegate
@@ -76,10 +58,16 @@ extension ViewController {
                         self?.presentAlertController()
                         return
                 }
-                self?.result = topResult.identifier
-                self?.image = image
                 DispatchQueue.main.async { [weak self] in
-                    self?.performSegue(withIdentifier: "ShowDetailViewController", sender: self)
+                    guard let detailVC = UIStoryboard(name: "DetailViewController", bundle: nil).instantiateInitialViewController() as? DetailViewController else {
+                        self?.presentAlertController()
+                        return
+                    }
+                    detailVC.loadView()
+                    detailVC.orangeOrNotLabel.text = topResult.identifier
+                    detailVC.orangeOrNotView.backgroundColor = topResult.identifier == "Orange" ? #colorLiteral(red: 0.9997988343, green: 0.6145423055, blue: 0, alpha: 1):#colorLiteral(red: 1, green: 0.3412684798, blue: 0.3385329545, alpha: 1)
+                    detailVC.imageView.image = image
+                    self?.present(detailVC, animated: true)
                 }
             }
             let handler = VNImageRequestHandler(ciImage: ciImage)
